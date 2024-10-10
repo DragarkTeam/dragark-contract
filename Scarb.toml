@@ -1,0 +1,19 @@
+[package]
+name = "dragark_test_v19"
+version = "1.0.0"
+cairo-version = "2.7.0"
+
+[cairo]
+sierra-replace-ids = true
+
+[scripts]
+dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
+release = "sozo --profile release clean && sozo --profile release build && sozo --profile release migrate plan && sozo --profile release migrate apply"
+
+[dependencies]
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.14" }
+
+[[target.dojo]]
+
+[profile.dev]
+[profile.release]
