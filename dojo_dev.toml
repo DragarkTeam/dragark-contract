@@ -1,0 +1,22 @@
+[world]
+name = "Dragark"
+description = "Dragark is a Starknet-native fully on-chain game set in the fantastic Sky Kingdom, where players can take their Dragarks on a journey to explore, conquer, exploit, expand their sky territories, and craft & trade the in-game assets within a dynamic economy."
+cover_uri = "https://assets.dragark.net/dragark/upload/cover.png"
+icon_uri = "https://assets.dragark.net/dragark/upload/icon.png"
+website = "https://dragark.net/"
+seed = "dragark"
+
+[world.socials]
+x = "https://twitter.com/playDRAGARK"
+discord = "https://discord.gg/KEChMrdk7z"
+github = "https://github.com/DragarkTeam"
+telegram = "https://t.me/dojoengine"
+
+[namespace]
+default = "dragark"
+
+[env]
+rpc_url = ""
+account_address = ""
+private_key = ""
+# world_address = ""   # Update this line with your world address

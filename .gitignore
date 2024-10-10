@@ -1,0 +1,10 @@
+/manifests
+/target
+manifests/
+target/
+abis/
+/abis
+bindings/
+/bindings
+notes
+bindings copy
