@@ -1,5 +1,5 @@
 [package]
-name = "dragark_test_v19"
+name = "dragark"
 version = "1.0.0"
 cairo-version = "2.7.0"
 
@@ -11,7 +11,8 @@ dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile de
 release = "sozo --profile release clean && sozo --profile release build && sozo --profile release migrate plan && sozo --profile release migrate apply"
 
 [dependencies]
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.14" }
+dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.16" }
+alexandria_ascii = { git = "https://github.com/keep-starknet-strange/alexandria.git", rev = "e1b0805" } # v2.7.0
 
 [[target.dojo]]
 

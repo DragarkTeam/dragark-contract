@@ -2,13 +2,74 @@
 version = 1
 
 [[package]]
-name = "dojo"
-version = "1.0.0-alpha.4"
-source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-alpha.14#6bafcb55178888268d86aae9dccef8a1ba6e7542"
+name = "alexandria_ascii"
+version = "0.1.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_data_structures",
+]
 
 [[package]]
-name = "dragark_test_v19"
+name = "alexandria_bytes"
+version = "0.1.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_data_structures",
+ "alexandria_math",
+]
+
+[[package]]
+name = "alexandria_data_structures"
+version = "0.2.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_encoding",
+]
+
+[[package]]
+name = "alexandria_encoding"
+version = "0.1.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_bytes",
+ "alexandria_math",
+ "alexandria_numeric",
+]
+
+[[package]]
+name = "alexandria_math"
+version = "0.2.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_data_structures",
+]
+
+[[package]]
+name = "alexandria_numeric"
+version = "0.1.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_math",
+ "alexandria_searching",
+]
+
+[[package]]
+name = "alexandria_searching"
+version = "0.1.0"
+source = "git+https://github.com/keep-starknet-strange/alexandria.git?rev=e1b0805#e1b080577aaa6889116fc8be5dde72b2fd21e397"
+dependencies = [
+ "alexandria_data_structures",
+]
+
+[[package]]
+name = "dojo"
+version = "1.0.0-alpha.4"
+source = "git+https://github.com/dojoengine/dojo?tag=v1.0.0-alpha.16#3b3a78cd8239ca2ee524c49c83f36db4d79cb4bc"
+
+[[package]]
+name = "dragark"
 version = "1.0.0"
 dependencies = [
+ "alexandria_ascii",
  "dojo",
 ]

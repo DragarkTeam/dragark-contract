@@ -1,0 +1,32 @@
+tag = "dragark-treasure_hunt_systems"
+writes = [
+    "dragark-Achievement",
+    "dragark-AchievementTracking",
+    "dragark-BaseResources",
+    "dragark-Dragon",
+    "dragark-Island",
+    "dragark-PositionIsland",
+    "dragark-PlayerIslandSlot",
+    "dragark-Journey",
+    "dragark-MapInfo",
+    "dragark-NonceUsed",
+    "dragark-Mission",
+    "dragark-MissionTracking",
+    "dragark-Player",
+    "dragark-PlayerGlobal",
+    "dragark-PlayerDragonOwned",
+    "dragark-PlayerIslandOwned",
+    "dragark-PlayerInviteCode",
+    "dragark-AccountLevelUpgrade",
+    "dragark-InvitationLevelUpgrade",
+    "dragark-StarShopTracking",
+    "dragark-NextBlockDirection",
+    "dragark-NextIslandBlockDirection",
+    "dragark-ScoutInfo",
+    "dragark-PlayerScoutInfo",
+    "dragark-Shield",
+    "dragark-TreasureHunt",
+    "dragark-PlayerPoolShareClaim",
+    "dragark-PoolShareInfo"
+]
+init_calldata = []

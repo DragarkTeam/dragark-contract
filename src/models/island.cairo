@@ -7,19 +7,17 @@ use starknet::ContractAddress;
 use starknet::get_block_timestamp;
 
 // Dojo imports
-use dojo::world::{
-    IWorldProvider, IWorldProviderDispatcher, IWorldDispatcher, IWorldDispatcherTrait
-};
+use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
 
 // Internal imports
-use dragark_test_v19::{
+use dragark::{
     models::{
-        map_info::{MapInfo, IsMapInitialized}, player_island_slot::{PlayerIslandSlot},
-        position::{Position}
+        map::{MapInfo, IsMapInitialized, MapTrait}, position::{NextIslandBlockDirection, Position}
     },
     errors::{Error, assert_with_err, panic_by_err},
 };
 
+// Models
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
 struct Island {
@@ -55,6 +53,23 @@ struct PositionIsland {
     island_id: usize
 }
 
+#[derive(Drop, Serde)]
+#[dojo::model]
+struct PlayerIslandSlot {
+    #[key]
+    map_id: usize,
+    #[key]
+    block_id: u32,
+    island_ids: Array<u32>
+}
+
+// Structs
+#[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default, Debug)]
+struct Resource {
+    food: u32
+}
+
+// Enums
 #[derive(Copy, Drop, Serde, IntrospectPacked, Default)]
 enum IslandElement {
     #[default]
@@ -90,11 +105,6 @@ enum IslandTitle {
     Neverland
 }
 
-#[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default, Debug)]
-struct Resource {
-    food: u32
-}
-
 #[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default)]
 enum IslandType {
     #[default]
@@ -112,25 +122,60 @@ enum ResourceClaimType {
     Both
 }
 
-trait IslandTrait {
-    fn gen_island_per_block(
-        world: IWorldDispatcher, map_id: usize, block_coordinates: Position, island_type: IslandType
-    );
-}
-
+// Impls
+#[generate_trait]
 impl IslandImpl of IslandTrait {
+    // Internal function to handle `claim_resources` logic
+    fn claim_resources(
+        ref island: Island, ref map: MapInfo, world: IWorldDispatcher, cur_block_timestamp: u64
+    ) -> bool {
+        // Update resources
+        let island_cur_resources = island.cur_resources;
+        let island_max_resources = island.max_resources;
+        let resources_per_claim = island.resources_per_claim;
+
+        if (island_cur_resources.food + resources_per_claim.food >= island_max_resources.food) {
+            island.cur_resources.food = island_max_resources.food;
+        } else {
+            island.cur_resources.food += resources_per_claim.food;
+        }
+
+        island.last_resources_claim = cur_block_timestamp;
+
+        // Update map
+        map.total_claim_resources += 1;
+
+        // Save models
+        set!(world, (map));
+        set!(world, (island));
+
+        true
+    }
+
+    // Internal function to handle `gen_island_per_block` logic
     fn gen_island_per_block(
-        world: IWorldDispatcher, map_id: usize, block_coordinates: Position, island_type: IslandType
+        ref map: MapInfo, world: IWorldDispatcher, island_type: IslandType, is_init: bool
     ) {
-        let map = get!(world, (map_id), MapInfo);
+        let map_id = map.map_id;
         let cur_block_timestamp = get_block_timestamp();
 
-        // Check whether the map has been initialized or not
-        assert_with_err(
-            map.is_initialized == IsMapInitialized::Initialized,
-            Error::MAP_NOT_INITIALIZED,
-            Option::None
-        );
+        if (!is_init) {
+            // Get next block direction
+            let mut next_island_block_direction_model = get!(
+                world, (map_id), NextIslandBlockDirection
+            );
+            MapTrait::_move_next_island_block(
+                ref next_island_block_direction_model, ref map, world
+            );
+
+            // Check current island block coordinates
+            if (map.cur_island_block_coordinates.x == 276
+                && map.cur_island_block_coordinates.y == 264) {
+                panic_by_err(Error::REACHED_MAX_ISLAND_GENERATED, Option::None);
+            }
+        }
+
+        let block_coordinates = map.cur_island_block_coordinates;
 
         // Get u32 max
         let u32_max = BoundedU32::max();
@@ -180,8 +225,6 @@ impl IslandImpl of IslandTrait {
             if (i == 9) {
                 break;
             }
-
-            let mut map = get!(world, (map_id), MapInfo);
 
             // Check if this island is for player
             let mut is_for_player: bool = false;
@@ -464,9 +507,12 @@ impl IslandImpl of IslandTrait {
             // Save MapInfo model
             map.total_island += 1;
             map.derelict_islands_num += 1;
-            set!(world, (map));
 
             i = i + 1;
         };
+
+        // Save models
+        set!(world, (map));
     }
 }
+

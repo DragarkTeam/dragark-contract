@@ -1,6 +1,7 @@
 // Starknet imports
 use starknet::get_block_timestamp;
 
+// Models
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
 struct NextBlockDirection {
@@ -25,6 +26,7 @@ struct NextIslandBlockDirection {
     right_5: u32,
 }
 
+// Structs
 #[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default, Debug)]
 struct Position {
     x: u32,

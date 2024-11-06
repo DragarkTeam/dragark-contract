@@ -1,53 +1,60 @@
-mod systems {
-    mod actions;
-}
-
-mod components {
+mod models {
+    mod achievement;
+    mod base;
     mod dragon;
     mod island;
     mod journey;
     mod map;
-    mod scout;
-    mod player;
-    mod shield;
     mod mission;
-    mod achievement;
-    mod base;
-    mod emitter;
-}
-
-mod models {
-    mod dragon;
-    mod map_info;
-    mod island;
     mod player;
-    mod player_dragon_owned;
-    mod player_island_owned;
-    mod player_island_slot;
-    mod scout_info;
-    mod journey;
     mod position;
+    mod scout;
     mod shield;
-    mod mission;
-    mod achievement;
-    mod base;
+    mod treasure_hunt;
 }
 
-mod errors;
+mod systems {
+    mod achievement {
+        mod contracts;
+    }
+    mod base {
+        mod contracts;
+    }
+    mod dragon {
+        mod contracts;
+    }
+    mod island {
+        mod contracts;
+    }
+    mod journey {
+        mod contracts;
+    }
+    mod map {
+        mod contracts;
+    }
+    mod mission {
+        mod contracts;
+    }
+    mod player {
+        mod contracts;
+    }
+    mod scout {
+        mod contracts;
+    }
+    mod shield {
+        mod contracts;
+    }
+    mod treasure_hunt {
+        mod contracts;
+    }
+}
+
+mod utils {
+    mod general;
+    #[cfg(test)]
+    mod testing;
+}
+
 mod constants;
+mod errors;
 mod events;
-mod utils;
-
-#[cfg(test)]
-mod tests {
-    mod setup;
-    mod store;
-    mod test_dragon;
-    mod test_island;
-    mod test_journey;
-    mod test_map;
-    mod test_scout;
-    mod test_shield;
-    mod test_player;
-    mod test_mission;
-}

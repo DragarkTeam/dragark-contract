@@ -16,7 +16,7 @@ telegram = "https://t.me/dojoengine"
 default = "dragark"
 
 [env]
-rpc_url = "https://api.cartridge.gg/x/dragark-test-v18/katana"
+rpc_url = ""
 account_address = ""
 private_key = ""
 # world_address = ""   # Update this line with your world address
