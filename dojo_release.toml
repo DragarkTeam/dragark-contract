@@ -20,3 +20,6 @@ rpc_url = ""
 account_address = ""
 private_key = ""
 # world_address = ""   # Update this line with your world address
+
+[writers]
+"dragark" = ["dragark-actions"]

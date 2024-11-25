@@ -1,77 +1,58 @@
 // Core imports
-use core::integer::BoundedU32;
-use core::Zeroable;
+use core::{num::traits::Bounded, zeroable::Zeroable};
 
 // Starknet imports
-use starknet::ContractAddress;
-use starknet::get_block_timestamp;
+use starknet::{ContractAddress, get_block_timestamp};
 
 // Dojo imports
-use dojo::world::{IWorldDispatcher, IWorldDispatcherTrait};
+use dojo::{model::ModelStorage, world::WorldStorage};
 
 // Internal imports
 use dragark::{
     models::{
-        map::{MapInfo, IsMapInitialized, MapTrait}, position::{NextIslandBlockDirection, Position}
+        map_info::{MapInfo, IsMapInitialized}, player_island_slot::{PlayerIslandSlot},
+        position::{Position}
     },
     errors::{Error, assert_with_err, panic_by_err},
 };
 
-// Models
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
-struct Island {
+pub struct Island {
     #[key]
-    map_id: usize,
+    pub map_id: usize,
     #[key]
-    island_id: usize,
-    owner: ContractAddress,
-    position: Position,
-    block_id: u32,
-    element: IslandElement,
-    title: IslandTitle,
-    island_type: IslandType,
-    level: u8,
-    max_resources: Resource,
-    cur_resources: Resource,
-    resources_per_claim: Resource,
-    claim_waiting_time: u64,
-    resources_claim_type: ResourceClaimType,
-    last_resources_claim: u64,
-    shield_protection_time: u64
+    pub island_id: usize,
+    pub owner: ContractAddress,
+    pub position: Position,
+    pub block_id: u32,
+    pub element: IslandElement,
+    pub title: IslandTitle,
+    pub island_type: IslandType,
+    pub level: u8,
+    pub max_resources: Resource,
+    pub cur_resources: Resource,
+    pub resources_per_claim: Resource,
+    pub claim_waiting_time: u64,
+    pub resources_claim_type: ResourceClaimType,
+    pub last_resources_claim: u64,
+    pub shield_protection_time: u64
 }
 
 #[derive(Copy, Drop, Serde)]
 #[dojo::model]
-struct PositionIsland {
+pub struct PositionIsland {
     #[key]
-    map_id: usize,
+    pub map_id: usize,
     #[key]
-    x: u32,
+    pub x: u32,
     #[key]
-    y: u32,
-    island_id: usize
+    pub y: u32,
+    pub island_id: usize
 }
 
-#[derive(Drop, Serde)]
-#[dojo::model]
-struct PlayerIslandSlot {
-    #[key]
-    map_id: usize,
-    #[key]
-    block_id: u32,
-    island_ids: Array<u32>
-}
-
-// Structs
-#[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default, Debug)]
-struct Resource {
-    food: u32
-}
-
-// Enums
 #[derive(Copy, Drop, Serde, IntrospectPacked, Default)]
-enum IslandElement {
+pub enum IslandElement {
     #[default]
     None,
     Fire,
@@ -80,7 +61,7 @@ enum IslandElement {
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, Default)]
-enum IslandTitle {
+pub enum IslandTitle {
     #[default]
     None,
     ForgottenIsle,
@@ -105,8 +86,13 @@ enum IslandTitle {
     Neverland
 }
 
+#[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default, Debug)]
+pub struct Resource {
+    pub food: u32
+}
+
 #[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default)]
-enum IslandType {
+pub enum IslandType {
     #[default]
     None,
     Normal,
@@ -114,7 +100,7 @@ enum IslandType {
 }
 
 #[derive(Copy, Drop, Serde, IntrospectPacked, PartialEq, Default)]
-enum ResourceClaimType {
+pub enum ResourceClaimType {
     #[default]
     None,
     Food,
@@ -122,63 +108,26 @@ enum ResourceClaimType {
     Both
 }
 
-// Impls
-#[generate_trait]
-impl IslandImpl of IslandTrait {
-    // Internal function to handle `claim_resources` logic
-    fn claim_resources(
-        ref island: Island, ref map: MapInfo, world: IWorldDispatcher, cur_block_timestamp: u64
-    ) -> bool {
-        // Update resources
-        let island_cur_resources = island.cur_resources;
-        let island_max_resources = island.max_resources;
-        let resources_per_claim = island.resources_per_claim;
-
-        if (island_cur_resources.food + resources_per_claim.food >= island_max_resources.food) {
-            island.cur_resources.food = island_max_resources.food;
-        } else {
-            island.cur_resources.food += resources_per_claim.food;
-        }
-
-        island.last_resources_claim = cur_block_timestamp;
-
-        // Update map
-        map.total_claim_resources += 1;
-
-        // Save models
-        set!(world, (map));
-        set!(world, (island));
-
-        true
-    }
-
-    // Internal function to handle `gen_island_per_block` logic
+pub trait IslandTrait {
     fn gen_island_per_block(
-        ref map: MapInfo, world: IWorldDispatcher, island_type: IslandType, is_init: bool
+        ref world: WorldStorage, map_id: usize, block_coordinates: Position, island_type: IslandType
+    );
+}
+
+impl IslandImpl of IslandTrait {
+    fn gen_island_per_block(
+        ref world: WorldStorage, map_id: usize, block_coordinates: Position, island_type: IslandType
     ) {
-        let map_id = map.map_id;
+        let map: MapInfo = world.read_model(map_id);
         let cur_block_timestamp = get_block_timestamp();
 
-        if (!is_init) {
-            // Get next block direction
-            let mut next_island_block_direction_model = get!(
-                world, (map_id), NextIslandBlockDirection
-            );
-            MapTrait::_move_next_island_block(
-                ref next_island_block_direction_model, ref map, world
-            );
-
-            // Check current island block coordinates
-            if (map.cur_island_block_coordinates.x == 276
-                && map.cur_island_block_coordinates.y == 264) {
-                panic_by_err(Error::REACHED_MAX_ISLAND_GENERATED, Option::None);
-            }
-        }
-
-        let block_coordinates = map.cur_island_block_coordinates;
+        // Check whether the map has been initialized or not
+        assert_with_err(
+            map.is_initialized == IsMapInitialized::Initialized, Error::MAP_NOT_INITIALIZED
+        );
 
         // Get u32 max
-        let u32_max = BoundedU32::max();
+        let u32_max: u32 = Bounded::MAX;
 
         // Get position in sub-block
         let mut sub_block_pos_ids: Array<u32> = ArrayTrait::new();
@@ -216,7 +165,7 @@ impl IslandImpl of IslandTrait {
         } else if (sub_block_pos_ids_ord == 11) {
             sub_block_pos_ids = array![15, 34, 43, 63, 70, 78, 111, 116, 131];
         } else {
-            panic_by_err(Error::INVALID_CASE_SUB_BLOCK_POSITION_IDS, Option::None);
+            panic_by_err(Error::INVALID_CASE_SUB_BLOCK_POSITION_IDS);
         }
 
         // Loop to create 9 islands
@@ -225,6 +174,8 @@ impl IslandImpl of IslandTrait {
             if (i == 9) {
                 break;
             }
+
+            let mut map: MapInfo = world.read_model(map_id);
 
             // Check if this island is for player
             let mut is_for_player: bool = false;
@@ -371,7 +322,7 @@ impl IslandImpl of IslandTrait {
                 } else if (96 <= rate_id && rate_id <= 100) {
                     level = 10;
                 } else {
-                    panic_by_err(Error::INVALID_CASE_ISLAND_LEVEL, Option::None);
+                    panic_by_err(Error::INVALID_CASE_ISLAND_LEVEL);
                 }
             }
 
@@ -422,7 +373,7 @@ impl IslandImpl of IslandTrait {
                 foods_per_claim = 1500;
                 claim_waiting_time = 1800;
             } else {
-                panic_by_err(Error::INVALID_CASE_ISLAND_LEVEL_RESOURCES, Option::None);
+                panic_by_err(Error::INVALID_CASE_ISLAND_LEVEL_RESOURCES);
             }
 
             // Calculate resources claim type
@@ -446,7 +397,7 @@ impl IslandImpl of IslandTrait {
                 } else if (resources_claim_type_num == 0) {
                     resources_claim_type = ResourceClaimType::Both;
                 } else {
-                    panic_by_err(Error::INVALID_CASE_RESOURCES_CLAIM_TYPE, Option::None);
+                    panic_by_err(Error::INVALID_CASE_RESOURCES_CLAIM_TYPE);
                 }
 
                 if (resources_claim_type == ResourceClaimType::Stone) {
@@ -465,54 +416,49 @@ impl IslandImpl of IslandTrait {
 
             // Save PlayerIslandSlot model
             if (is_for_player) {
-                let mut player_island_slot_island_ids: Array<usize> = get!(
-                    world, (map_id, block_id), PlayerIslandSlot
-                )
-                    .island_ids;
+                let player_island_slot: PlayerIslandSlot = world.read_model((map_id, block_id));
+                let mut player_island_slot_island_ids: Array<usize> = player_island_slot.island_ids;
                 player_island_slot_island_ids.append(island_id);
-                set!(
-                    world,
-                    (PlayerIslandSlot {
-                        map_id, block_id, island_ids: player_island_slot_island_ids,
-                    })
-                );
+                world
+                    .write_model(
+                        @PlayerIslandSlot {
+                            map_id, block_id, island_ids: player_island_slot_island_ids,
+                        }
+                    );
             }
 
             // Save Island model
-            set!(
-                world,
-                (Island {
-                    map_id,
-                    island_id,
-                    owner: Zeroable::zero(),
-                    position: Position { x, y },
-                    block_id,
-                    element,
-                    title,
-                    island_type,
-                    level,
-                    max_resources: Resource { food: max_food },
-                    cur_resources: Resource { food },
-                    resources_per_claim: Resource { food: foods_per_claim },
-                    claim_waiting_time,
-                    resources_claim_type,
-                    last_resources_claim: cur_block_timestamp,
-                    shield_protection_time: cur_block_timestamp
-                })
-            );
+            world
+                .write_model(
+                    @Island {
+                        map_id,
+                        island_id,
+                        owner: Zeroable::zero(),
+                        position: Position { x, y },
+                        block_id,
+                        element,
+                        title,
+                        island_type,
+                        level,
+                        max_resources: Resource { food: max_food },
+                        cur_resources: Resource { food },
+                        resources_per_claim: Resource { food: foods_per_claim },
+                        claim_waiting_time,
+                        resources_claim_type,
+                        last_resources_claim: cur_block_timestamp,
+                        shield_protection_time: cur_block_timestamp
+                    }
+                );
 
             // Save PositionIsland model
-            set!(world, (PositionIsland { map_id, x, y, island_id }));
+            world.write_model(@PositionIsland { map_id, x, y, island_id });
 
             // Save MapInfo model
             map.total_island += 1;
             map.derelict_islands_num += 1;
+            world.write_model(@map);
 
             i = i + 1;
         };
-
-        // Save models
-        set!(world, (map));
     }
 }
-

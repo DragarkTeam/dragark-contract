@@ -1,20 +1,24 @@
 [package]
 name = "dragark"
 version = "1.0.0"
-cairo-version = "2.7.0"
+cairo-version = "=2.8.4"
 
 [cairo]
 sierra-replace-ids = true
 
-[scripts]
-dev = "sozo --profile dev clean && sozo --profile dev build && sozo --profile dev migrate plan && sozo --profile dev migrate apply"
-release = "sozo --profile release clean && sozo --profile release build && sozo --profile release migrate plan && sozo --profile release migrate apply"
+[[target.starknet-contract]]
+sierra = true
+build-external-contracts = ["dojo::world::world_contract::world"]
 
 [dependencies]
-dojo = { git = "https://github.com/dojoengine/dojo", tag = "v1.0.0-alpha.16" }
-alexandria_ascii = { git = "https://github.com/keep-starknet-strange/alexandria.git", rev = "e1b0805" } # v2.7.0
+starknet = "2.8.4"
+dojo = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.0.1" }
 
-[[target.dojo]]
+[dev-dependencies]
+dojo_cairo_test = { git = "https://github.com/dojoengine/dojo.git", tag = "v1.0.1" }
+
+[features]
+default = []
 
 [profile.dev]
 [profile.release]
